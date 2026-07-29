@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>My Workout Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:  #0a0a0a;
+    --dark:   #111111;
+    --card:   #181818;
+    --card2:  #202020;
+    --border: rgba(255,255,255,0.07);
+    --border2:rgba(255,255,255,0.13);
+    --white:  #f0ede6;
+    --muted:  #7a7870;
+    --dim:    #3a3a38;
+    --push:   #E85D24;
+    --pull:   #3B8BD4;
+    --legs:   #52A84B;
+    --rest:   #666660;
+    --box:    #C43D5C;
+    --accent: #E8C84A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+  body { display: flex; flex-direction: column; max-width: 430px; margin: 0 auto; min-height: 100vh; }
+
+  .header { padding: 52px 20px 14px; background: var(--black); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
+  .header-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 14px; }
+  .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 1px; line-height: 1; color: var(--white); }
+  .header-title span { color: var(--accent); }
+  .version-pill { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(232,200,74,0.3); border-radius: 20px; padding: 3px 10px; margin-bottom: 6px; }
+  .cycle-note { font-size: 11px; color: var(--muted); font-weight: 300; margin-bottom: 12px; }
+
+  .day-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .day-btn { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 2px 6px; cursor: pointer; transition: all .18s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .day-btn.active { border-color: var(--accent); background: rgba(232,200,74,0.08); }
+  .day-btn:active { transform: scale(.95); }
+  .day-name { font-size: 10px; font-weight: 600; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; }
+  .day-btn.active .day-name { color: var(--accent); }
+  .day-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  .main { flex: 1; overflow-y: auto; padding: 0 0 110px; -webkit-overflow-scrolling: touch; }
+
+  .day-hero { padding: 22px 20px 14px; border-bottom: 1px solid var(--border); }
+  .day-hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+  .day-type-label { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 1px; line-height: 1; }
+  .day-badge { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; flex-shrink: 0; }
+  .day-sub { font-size: 12px; color: var(--muted); font-weight: 300; margin-bottom: 10px; }
+  .day-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+  .meta-pill { font-size: 11px; font-weight: 400; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+
+  .section { padding: 14px 20px 0; }
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .ex-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 13px 15px; margin-bottom: 7px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .ex-card:active { background: var(--card2); }
+  .ex-card.expanded { border-color: var(--border2); }
+  .ex-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .ex-name { font-size: 14px; font-weight: 500; color: var(--white); line-height: 1.3; }
+  .ex-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .ex-sets { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: .5px; white-space: nowrap; text-align: right; }
+  .ex-rest { font-size: 10px; font-weight: 500; color: var(--muted); text-align: right; }
+  .ex-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; justify-content: flex-end; }
+  .b { font-size: 8px; font-weight: 600; letter-spacing: .06em; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; background: rgba(232,200,74,0.14); color: var(--accent); }
+  .ex-note { font-size: 12px; color: var(--muted); font-weight: 300; line-height: 1.55; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: none; }
+  .ex-note em { color: var(--accent); font-style: normal; font-weight: 500; }
+  .ex-card.expanded .ex-note { display: block; }
+  .ex-chevron { font-size: 10px; color: var(--dim); margin-top: 3px; transition: transform .2s; display: block; text-align: right; }
+  .ex-card.expanded .ex-chevron { transform: rotate(180deg); }
+
+  .tip-section { padding: 16px 20px 0; }
+  .tip-box { background: var(--card); border-left: 3px solid var(--accent); border-radius: 0 12px 12px 0; padding: 14px 16px; }
+  .tip-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .tip-text { font-size: 13px; color: var(--muted); line-height: 1.65; font-weight: 300; }
+
+  .nutr-section { padding: 14px 20px 0; }
+  .nutr-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+  .nutr-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .nutr-pill { font-size: 12px; padding: 5px 12px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); color: var(--muted); }
+
+  .push-color { color: var(--push); } .pull-color { color: var(--pull); }
+  .legs-color { color: var(--legs); } .rest-color { color: var(--rest); } .box-color { color: var(--box); }
+  .badge-push { background: rgba(232,93,36,0.15);  color: var(--push); }
+  .badge-pull { background: rgba(59,139,212,0.15); color: var(--pull); }
+  .badge-legs { background: rgba(82,168,75,0.15);  color: var(--legs); }
+  .badge-rest { background: rgba(102,102,96,0.15); color: var(--rest); }
+  .badge-box  { background: rgba(196,61,92,0.15);  color: var(--box);  }
+  .dot-push { background: var(--push); } .dot-pull { background: var(--pull); }
+  .dot-legs { background: var(--legs); } .dot-rest { background: var(--rest); } .dot-box { background: var(--box); }
+
+  .bottom-hint { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: linear-gradient(to top, var(--black) 60%, transparent); padding: 20px 20px 14px; pointer-events: none; text-align: center; }
+  .bottom-hint span { font-size: 11px; color: var(--dim); }
+
+  .day-hero, .section, .tip-section, .nutr-section { animation: fadeUp .22s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-title">MY <span>PLAN</span></div>
+    <div class="version-pill">v5</div>
+  </div>
+  <div class="cycle-note">6-day rotating cycle — floats across your week, doesn't lock to Mon–Sun</div>
+  <div class="day-strip" id="day-strip"></div>
+</div>
+
+<div class="main" id="main"></div>
+<div class="bottom-hint"><span>Tap any exercise to expand notes</span></div>
+
+<script>
+const days = [
+
+  // ── A¹ — PUSH + QUAD LEG ─────────────────────────────────────────────
+  {
+    label:'A¹', tag:'Push+Leg', tagClass:'push',
+    typeLabel:'PUSH + QUAD LEG',
+    sub:'Chest, shoulders, triceps · squats & hip thrusts',
+    meta:['Squats live here only', 'Quad-dominant leg day'],
+    sections:[
+      { head:'Push', exercises:[
+        { name:'Chest press / Incline press', sets:'2 × 6–8', rest:'', badges:[], note:'Alternate flat and incline emphasis week to week if you want variety — either works here.' },
+        { name:'Overhead press', sets:'3 × 6–8', rest:'', badges:[], note:'' },
+        { name:'Tricep pulldown or dips', sets:'3 × 8–10', rest:'', badges:[], note:'' }
+      ]},
+      { head:'Quad-dominant leg', exercises:[
+        { name:'Barbell squats', sets:'4 × 6–8', rest:'', badges:[], note:'<em>This is the only squat day in the cycle</em> — leg press (on B) covers the second quad-dominant exposure on a separate day, so you\'re not stacking two heavy compounds back to back.' },
+        { name:'Hip thrusts', sets:'3 × 6–8', rest:'', badges:[], note:'' }
+      ]}
+    ],
+    tip:'Squats and hip thrusts are the priority here — go in fresh. If you\'re running short on time, the tricep finisher is the first thing to trim, not the compounds.',
+    nutrition:['Eat before training','Protein within the hour after']
+  },
+
+  // ── B¹ — PULL + QUAD LEG ─────────────────────────────────────────────
+  {
+    label:'B¹', tag:'Pull+Leg', tagClass:'pull',
+    typeLabel:'PULL + QUAD LEG',
+    sub:'Back, biceps · leg press & hamstring curls',
+    meta:['Leg press day', 'Hamstring curls here'],
+    sections:[
+      { head:'Pull', exercises:[
+        { name:'Bent-over row or cable row', sets:'', rest:'', badges:[], note:'Pick whichever\'s free — both hit the same pattern.' },
+        { name:'Wide grip pulldown', sets:'', rest:'', badges:[] },
+        { name:'Bicep curls', sets:'', rest:'Short rest', badges:['<span class="b">Short rest</span>'], note:'Keep rest tight here — this is meant to move quickly.' }
+      ]},
+      { head:'Quad-dominant leg', exercises:[
+        { name:'Leg press or incline leg', sets:'4 × 6–8', rest:'', badges:[], note:'Second quad-dominant exposure of the cycle, kept on a separate day from squats.' },
+        { name:'Hamstring curls', sets:'', rest:'', badges:[], note:'Placed here — one day after squats/hip thrusts, with the accessory day and a full rest day still ahead before the next A. That gap is what keeps this from interfering with squat recovery.' }
+      ]}
+    ],
+    tip:'Same push/pull pairing as A day in reverse — pull work first while fresh, leg press and curls after.',
+    nutrition:['Biggest meal after this session works well']
+  },
+
+  // ── LEGS ACCESSORY ────────────────────────────────────────────────────
+  {
+    label:'Legs', tag:'Accessory', tagClass:'legs',
+    typeLabel:'ACCESSORY DAY',
+    sub:'Calves, abs — lighter, shorter session',
+    meta:['Lightest day of the cycle', 'Keep it quick'],
+    sections:[
+      { head:'Accessory', exercises:[
+        { name:'Calf raises', sets:'', rest:'', badges:[] },
+        { name:'Incline ab crunches', sets:'', rest:'', badges:[] },
+        { name:'Captain\'s chair', sets:'', rest:'', badges:[], note:'Currently paired with incline crunches same day — you mentioned deciding later whether to alternate these across cycles instead. Easy to revisit.' },
+        { name:'Bicep curls', sets:'', rest:'Short rest', badges:['<span class="b">Short rest</span>'] }
+      ]}
+    ],
+    tip:'This day exists to keep total session count reasonable while still covering calves and abs weekly. Should feel noticeably shorter and lighter than A or B.',
+    nutrition:['Still hit protein even on a light day']
+  },
+
+  // ── REST ──────────────────────────────────────────────────────────────
+  {
+    label:'Rest', tag:'Rest', tagClass:'rest',
+    typeLabel:'REST',
+    sub:'No training',
+    meta:['Recovery', 'Sleep priority'],
+    sections:[
+      { head:'Recovery', exercises:[
+        { name:'No training', sets:'—', rest:'', badges:[], note:'This is the buffer between B\'s hamstring work and the next A\'s squats — protect it.' },
+        { name:'Sleep, hydration, protein as normal', sets:'—', rest:'', badges:[] }
+      ]}
+    ],
+    tip:'This rest day is what makes the whole cycle sustainable through a demanding season — don\'t skip it to "catch up" on a missed session.',
+    nutrition:['Protein doesn\'t take a day off']
+  },
+
+  // ── A² ────────────────────────────────────────────────────────────────
+  {
+    label:'A²', tag:'Push+Leg', tagClass:'push',
+    typeLabel:'PUSH + QUAD LEG',
+    sub:'Same as A¹ — chest, shoulders, triceps, squats, hip thrusts',
+    meta:['Second push/squat day', 'Same numbers as A¹'],
+    sections:[
+      { head:'Push', exercises:[
+        { name:'Chest press / Incline press', sets:'2 × 6–8', rest:'', badges:[] },
+        { name:'Overhead press', sets:'3 × 6–8', rest:'', badges:[] },
+        { name:'Tricep pulldown or dips', sets:'3 × 8–10', rest:'', badges:[] }
+      ]},
+      { head:'Quad-dominant leg', exercises:[
+        { name:'Barbell squats', sets:'4 × 6–8', rest:'', badges:[] },
+        { name:'Hip thrusts', sets:'3 × 6–8', rest:'', badges:[] }
+      ]}
+    ],
+    tip:'Identical to A¹ by design — same numbers, no need to reinvent it twice in one cycle.',
+    nutrition:['Eat before training','Protein within the hour after']
+  },
+
+  // ── B² ────────────────────────────────────────────────────────────────
+  {
+    label:'B²', tag:'Pull+Leg', tagClass:'pull',
+    typeLabel:'PULL + QUAD LEG',
+    sub:'Same as B¹ — back, biceps, leg press, hamstring curls',
+    meta:['Second pull/leg press day'],
+    sections:[
+      { head:'Pull', exercises:[
+        { name:'Bent-over row or cable row', sets:'', rest:'', badges:[] },
+        { name:'Wide grip pulldown', sets:'', rest:'', badges:[] },
+        { name:'Bicep curls', sets:'', rest:'Short rest', badges:['<span class="b">Short rest</span>'] }
+      ]},
+      { head:'Quad-dominant leg', exercises:[
+        { name:'Leg press or incline leg', sets:'4 × 6–8', rest:'', badges:[] },
+        { name:'Hamstring curls', sets:'', rest:'', badges:[] }
+      ]}
+    ],
+    tip:'Same as B¹ — no changes needed.',
+    nutrition:['Biggest meal after this session works well']
+  },
+
+  // ── BOXING / REST (alternating) ─────────────────────────────────────
+  {
+    label:'Box', tag:'Box or Rest', tagClass:'box',
+    typeLabel:'BOXING — OR REST',
+    sub:'Alternates week to week',
+    meta:['Alternate weekly', 'True rest every other cycle'],
+    sections:[
+      { head:'This slot alternates', exercises:[
+        { name:'Boxing session', sets:'Conditioning', rest:'', badges:[], note:'Treat this as conditioning/skill work, not a lifting session — footwork and stamina carry over directly to performance-season demands.' },
+        { name:'— or — full rest', sets:'—', rest:'', badges:[], note:'Every other cycle, take this as a true second rest day instead of boxing, so you\'re not training 5 of every 6 days indefinitely.' }
+      ]}
+    ],
+    tip:'Alternating boxing/rest here keeps the cycle from becoming five straight training days every single rotation — build in the down week deliberately, don\'t wait until you\'re run down to take it.',
+    nutrition:['Adjust intake down slightly on true rest weeks']
+  }
+];
+
+let activeDay = 0;
+
+function renderStrip() {
+  document.getElementById('day-strip').innerHTML = days.map((d, i) => `
+    <button class="day-btn ${i===activeDay?'active':''}" onclick="selectDay(${i})">
+      <span class="day-name">${d.label}</span>
+      <span class="day-dot dot-${d.tagClass}"></span>
+    </button>`).join('');
+}
+
+function renderMain() {
+  const d = days[activeDay];
+  let cardIdx = 0;
+
+  let html = `
+    <div class="day-hero">
+      <div class="day-hero-top">
+        <div class="day-type-label ${d.tagClass}-color">${d.typeLabel}</div>
+        <span class="day-badge badge-${d.tagClass}">${d.tag}</span>
+      </div>
+      <div class="day-sub">${d.sub}</div>
+      <div class="day-meta">${d.meta.map(m=>`<span class="meta-pill">${m}</span>`).join('')}</div>
+    </div>`;
+
+  d.sections.forEach(s => {
+    html += `<div class="section"><div class="section-label">${s.head}</div>`;
+    s.exercises.forEach(e => {
+      const idx = cardIdx++;
+      const hasNote = !!e.note;
+      html += `
+        <div class="ex-card" id="card-${idx}" onclick="${hasNote?`toggleCard(${idx})`:''}" style="${hasNote?'':'cursor:default'}">
+          <div class="ex-top">
+            <div class="ex-name">${e.name}</div>
+            <div class="ex-right">
+              ${e.sets ? `<div class="ex-sets ${d.tagClass}-color">${e.sets}</div>` : ''}
+              ${e.rest ? `<div class="ex-rest">${e.rest}</div>` : ''}
+              ${e.badges && e.badges.length ? `<div class="ex-badges">${e.badges.join('')}</div>` : ''}
+            </div>
+          </div>
+          ${hasNote ? `<div class="ex-note">${e.note}</div><span class="ex-chevron">▼</span>` : ''}
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `
+    <div class="tip-section">
+      <div class="tip-box">
+        <div class="tip-label">Coach note</div>
+        <div class="tip-text">${d.tip}</div>
+      </div>
+    </div>
+    <div class="nutr-section">
+      <div class="nutr-label">Nutrition focus</div>
+      <div class="nutr-pills">${d.nutrition.map(n=>`<span class="nutr-pill">${n}</span>`).join('')}</div>
+    </div>`;
+
+  document.getElementById('main').innerHTML = html;
+  document.getElementById('main').scrollTop = 0;
+}
+
+function toggleCard(idx) {
+  const card = document.getElementById(`card-${idx}`);
+  if (card) card.classList.toggle('expanded');
+}
+
+function selectDay(i) {
+  activeDay = i;
+  renderStrip();
+  renderMain();
+}
+
+renderStrip();
+renderMain();
+</script>
+</body>
+</html>
